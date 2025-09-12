@@ -1,0 +1,88 @@
+# ======================================
+# Python
+# ======================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+venv.bak/
+
+# Pip installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ======================================
+# Django
+# ======================================
+*.log
+*.pot
+*.pyc
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+static/
+.DS_Store
+
+# Django cache / session files
+*.mo
+*.swp
+*.swo
+*.tmp
+
+# Local settings
+*.local_settings.py
+.env
+.env.*
+.envrc
+
+# ======================================
+# PostgreSQL
+# ======================================
+*.pgsql
+*.pgdump
+*.psql
+*.sql
+
+# Ignore PostgreSQL data directories (if running locally without Docker)
+pg_data/
+postgres_data/
+
+# ======================================
+# Docker
+# ======================================
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Docker volumes and data
+docker-data/
+docker-volume/
+.docker/
+
+# ======================================
+# IDE / Editor Configs
+# ======================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ======================================
+# System Files
+# ======================================
+.DS_Store
+Thumbs.db
