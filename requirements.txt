@@ -1,35 +1,35 @@
-# ===========================
-# Core Framework
-# ===========================
-Django
-djangorestframework==3.15.2
-
-# ===========================
-# Database
-# ===========================
-psycopg2-binary==2.9.9   # PostgreSQL driver
-
-# ===========================
-# API Documentation
-# ===========================
-drf-yasg==1.21.7          # Swagger / OpenAPI generator
-
-# ===========================
-# Environment Management
-# ===========================
-python-decouple==3.8      # Manage environment variables
-
-# ===========================
-# Deployment & Production
-# ===========================
-gunicorn==22.0.0          # WSGI HTTP server for production
-
-# ===========================
-# Optional Enhancements
-# ===========================
-django-cors-headers==4.3.1   # Handle CORS for frontend integration
-
+amqp==5.3.1
+asgiref==3.8.1
+async-timeout==5.0.1
+billiard==4.2.1
 celery==5.4.0
-redis==5.0.8
+click==8.1.8
+click-didyoumean==0.3.1
+click-plugins==1.1.1.2
+click-repl==0.3.0
+coverage==7.6.1
+django==4.2.24
+django-cors-headers==4.3.1
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.3.1
+drf-yasg==1.21.7
+gunicorn==22.0.0
+inflection==0.5.1
+kombu==5.5.4
+packaging==25.0
+prompt-toolkit==3.0.52
+psycopg2-binary==2.9.9
+PyJWT==2.9.0
+python-dateutil==2.9.0.post0
+python-decouple==3.8
 python-dotenv==1.0.1
-python-dotenv
+pytz==2025.2
+PyYAML==6.0.2
+redis==5.0.8
+six==1.17.0
+sqlparse==0.5.3
+typing-extensions==4.13.2
+tzdata==2025.2
+uritemplate==4.1.1
+vine==5.1.0
+wcwidth==0.2.13

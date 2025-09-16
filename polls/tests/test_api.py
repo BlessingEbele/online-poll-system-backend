@@ -1,5 +1,6 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from polls.models import Poll, Option, Vote
@@ -13,6 +14,12 @@ class PollsAPITestCase(APITestCase):
         self.poll = Poll.objects.create(question="Favorite color?")
         self.option1 = Option.objects.create(poll=self.poll, text="Red")
         self.option2 = Option.objects.create(poll=self.poll, text="Blue")
+
+    # --- Utility ---
+    def authenticate(self):
+        """Helper to authenticate test client with JWT token."""
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
 
     # --- Root endpoint ---
     def test_api_root(self):
@@ -36,14 +43,22 @@ class PollsAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['question'], self.poll.question)
 
-    def test_create_poll(self):
+    def test_create_poll_requires_authentication(self):
+        url = reverse('poll-list')
+        data = {"question": "Best programming language?"}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_poll_authenticated(self):
+        self.authenticate()
         url = reverse('poll-list')
         data = {"question": "Best programming language?"}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Poll.objects.count(), 2)
 
-    def test_update_poll(self):
+    def test_update_poll_authenticated(self):
+        self.authenticate()
         url = reverse('poll-detail', args=[self.poll.id])
         data = {"question": "Updated color question?"}
         response = self.client.put(url, data)
@@ -51,7 +66,8 @@ class PollsAPITestCase(APITestCase):
         self.poll.refresh_from_db()
         self.assertEqual(self.poll.question, "Updated color question?")
 
-    def test_delete_poll(self):
+    def test_delete_poll_authenticated(self):
+        self.authenticate()
         url = reverse('poll-detail', args=[self.poll.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -73,14 +89,22 @@ class PollsAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['text'], "Red")
 
-    def test_create_option(self):
+    def test_create_option_requires_authentication(self):
+        url = reverse('option-list')
+        data = {"poll": self.poll.id, "text": "Green"}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_option_authenticated(self):
+        self.authenticate()
         url = reverse('option-list')
         data = {"poll": self.poll.id, "text": "Green"}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Option.objects.count(), 3)
 
-    def test_update_option(self):
+    def test_update_option_authenticated(self):
+        self.authenticate()
         url = reverse('option-detail', args=[self.option1.id])
         data = {"poll": self.poll.id, "text": "Dark Red"}
         response = self.client.put(url, data)
@@ -88,7 +112,8 @@ class PollsAPITestCase(APITestCase):
         self.option1.refresh_from_db()
         self.assertEqual(self.option1.text, "Dark Red")
 
-    def test_delete_option(self):
+    def test_delete_option_authenticated(self):
+        self.authenticate()
         url = reverse('option-detail', args=[self.option1.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -98,10 +123,10 @@ class PollsAPITestCase(APITestCase):
     def test_vote_requires_authentication(self):
         url = reverse('vote-list')
         response = self.client.post(url, {'option': self.option1.id})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_vote_authenticated(self):
-        self.client.login(username='testuser', password='password')
+        self.authenticate()
         url = reverse('vote-list')
         response = self.client.post(url, {'option': self.option1.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -109,7 +134,7 @@ class PollsAPITestCase(APITestCase):
         self.assertEqual(Vote.objects.first().user, self.user)
 
     def test_prevent_duplicate_vote(self):
-        self.client.login(username='testuser', password='password')
+        self.authenticate()
         url = reverse('vote-list')
         # First vote
         self.client.post(url, {'option': self.option1.id})
@@ -119,7 +144,7 @@ class PollsAPITestCase(APITestCase):
         self.assertEqual(Vote.objects.count(), 1)
 
     def test_list_votes_authenticated(self):
-        self.client.login(username='testuser', password='password')
+        self.authenticate()
         Vote.objects.create(user=self.user, option=self.option1)
         url = reverse('vote-list')
         response = self.client.get(url)
@@ -127,8 +152,8 @@ class PollsAPITestCase(APITestCase):
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['option'], self.option1.id)
 
-    def test_retrieve_vote_detail(self):
-        self.client.login(username='testuser', password='password')
+    def test_retrieve_vote_detail_authenticated(self):
+        self.authenticate()
         vote = Vote.objects.create(user=self.user, option=self.option1)
         url = reverse('vote-detail', args=[vote.id])
         response = self.client.get(url)

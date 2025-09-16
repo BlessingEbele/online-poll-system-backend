@@ -18,7 +18,7 @@ class OptionViewSet(viewsets.ModelViewSet):
 class VoteViewSet(viewsets.ModelViewSet):
     queryset = Vote.objects.all()
     serializer_class = VoteSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]# must be logged in to vote
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
