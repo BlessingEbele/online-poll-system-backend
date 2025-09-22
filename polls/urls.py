@@ -24,16 +24,16 @@ urlpatterns = [
 urlpatterns = format_suffix_patterns(urlpatterns)
 """
 
+# polls/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from . import views
+from .views import PollViewSet, OptionViewSet, VoteViewSet
 
 router = DefaultRouter()
-router.register(r'polls', views.PollViewSet, basename='poll')
-router.register(r'options', views.OptionViewSet, basename='option')
-router.register(r'votes', views.VoteViewSet, basename='vote')
+router.register(r"polls", PollViewSet, basename="poll")
+router.register(r"options", OptionViewSet, basename="option")
+router.register(r"votes", VoteViewSet, basename="vote")
 
 urlpatterns = [
-    path('', views.api_root, name='api-root'),  # browsable API root
-    path('', include(router.urls)),
+    path("", include(router.urls)),
 ]

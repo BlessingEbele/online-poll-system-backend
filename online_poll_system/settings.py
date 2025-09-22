@@ -9,22 +9,67 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+
+"""
+Django settings for online_poll_system project.
+"""
+
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+from datetime import timedelta
+import environ
 
-# Load environment variables
-load_dotenv()
-
+# ------------------------------------------------------------------------------
 # Paths
+# ------------------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Security
-SECRET_KEY = os.getenv("SECRET_KEY", "insecure-default-key")
-DEBUG = os.getenv("DEBUG", "0") == "1"
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split()
+# ------------------------------------------------------------------------------
+# Environment setup
+# ------------------------------------------------------------------------------
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 
+# Load .env file if present
+environ.Env.read_env(BASE_DIR / ".env")
+
+# ------------------------------------------------------------------------------
+# Security
+# ------------------------------------------------------------------------------
+SECRET_KEY = env("SECRET_KEY", default="insecure-default-key")
+DEBUG = env("DEBUG", default=False)
+
+# ALLOWED_HOSTS / CORS / CSRF from env
+def get_list_from_env(name, default=""):
+    """Helper to safely split comma-separated env vars into a list."""
+    value = env(name, default=default)
+    if not value:
+        return []
+    return [v.strip() for v in value.split(",") if v.strip()]
+
+ALLOWED_HOSTS = get_list_from_env("DJANGO_ALLOWED_HOSTS")
+if DEBUG and not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
+CORS_ALLOWED_ORIGINS = get_list_from_env("CORS_ALLOWED_ORIGINS")
+if DEBUG and not CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+    ]
+
+CSRF_TRUSTED_ORIGINS = get_list_from_env("CSRF_TRUSTED_ORIGINS")
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS += [
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
+    CSRF_TRUSTED_ORIGINS = list(set(CSRF_TRUSTED_ORIGINS))
+
+# ------------------------------------------------------------------------------
 # Applications
+# ------------------------------------------------------------------------------
 INSTALLED_APPS = [
     # Django apps
     "django.contrib.admin",
@@ -36,13 +81,15 @@ INSTALLED_APPS = [
 
     # Third-party apps
     "rest_framework",
-    "drf_yasg",
     "corsheaders",
     "rest_framework_simplejwt",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",  # Swagger/Redoc UI
 
     # Local apps
     "users",
     "polls",
+    "auth_api",
 ]
 
 MIDDLEWARE = [
@@ -76,22 +123,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "online_poll_system.wsgi.application"
 
-# Database (PostgreSQL)
+# ------------------------------------------------------------------------------
+# Database
+# ------------------------------------------------------------------------------
+# Prefer DATABASE_URL (works for PythonAnywhere’s MySQL/Postgres),
+# fallback to local Postgres values if not set.
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "postgres"),
-        "USER": os.getenv("POSTGRES_USER", "postgres"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
-        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
-    }
+    "default": env.db(
+        "DATABASE_URL",
+        default=f"postgres://{os.getenv('POSTGRES_USER', 'postgres')}:{os.getenv('POSTGRES_PASSWORD', '')}@{os.getenv('POSTGRES_HOST', 'localhost')}:{os.getenv('POSTGRES_PORT', '5432')}/{os.getenv('POSTGRES_DB', 'postgres')}"
+    )
 }
 
+# ------------------------------------------------------------------------------
 # Custom user model
+# ------------------------------------------------------------------------------
 AUTH_USER_MODEL = "users.User"
 
+# ------------------------------------------------------------------------------
 # Password validation
+# ------------------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -99,68 +150,84 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# ------------------------------------------------------------------------------
 # Internationalization
+# ------------------------------------------------------------------------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# ------------------------------------------------------------------------------
+# Static & Media files
+# ------------------------------------------------------------------------------
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "mediafiles"
+
+# ------------------------------------------------------------------------------
 # Default primary key field type
+# ------------------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Django REST Framework settings
+# ------------------------------------------------------------------------------
+# Django REST Framework
+# ------------------------------------------------------------------------------
 REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        #"rest_framework.authentication.SessionAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
 }
 
+# ------------------------------------------------------------------------------
+# JWT settings
+# ------------------------------------------------------------------------------
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "ALGORITHM": "HS256",
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+}
 
-# -----------------------------
-# CORS & CSRF Settings
-# -----------------------------
+# ------------------------------------------------------------------------------
+# Spectacular / Swagger
+# ------------------------------------------------------------------------------
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Poll System API",
+    "DESCRIPTION": "Backend API for creating polls, voting, and managing results.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 
-# CORS: from .env or fallback
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split()
+    "SECURITY": [{"BearerAuth": []}],
+    "COMPONENT_SPLIT_REQUEST": True,
 
-if DEBUG and not CORS_ALLOWED_ORIGINS:
-    # Default to common frontend dev servers
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-    ]
+    "COMPONENTS": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+            }
+        }
+    },
 
-# CSRF: from .env or fallback
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split()
+    "TAGS": [
+        {"name": "Polls", "description": "Poll management endpoints"},
+        {"name": "Options", "description": "Poll options"},
+        {"name": "Votes", "description": "Vote submission"},
+        {"name": "Auth", "description": "User authentication and registration"},
+    ],
 
-if DEBUG:
-    # Always trust Django dev server
-    CSRF_TRUSTED_ORIGINS += [
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-    ]
-    # Deduplicate (important if .env adds the same hosts)
-    CSRF_TRUSTED_ORIGINS = list(set(CSRF_TRUSTED_ORIGINS))
-
-
-
-
-# CORS Settings
-#CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split()
-# Example: "http://localhost:3000 http://127.0.0.1:5173"
-
-# Allow all origins in dev mode (⚠️ not recommended for prod)
-#if DEBUG and not CORS_ALLOWED_ORIGINS[0]:
-#    CORS_ALLOW_ALL_ORIGINS = True
-
-# CSRF Settings
-#CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split()
-# Example: "http://localhost:3000 http://127.0.0.1:5173"
+    "SWAGGER_UI_SETTINGS": {
+        "persistAuthorization": True,
+    },
+}

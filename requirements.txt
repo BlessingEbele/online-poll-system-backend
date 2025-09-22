@@ -33,3 +33,6 @@ tzdata==2025.2
 uritemplate==4.1.1
 vine==5.1.0
 wcwidth==0.2.13
+drf-spectacular
+drf-spectacular[sidecar]   # for built-in Swagger & Redoc UI
+django-environ>=0.11.2

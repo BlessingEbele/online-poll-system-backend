@@ -38,25 +38,28 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/api/', permanent=True)),  # redirect '/' to '/api/'
 ]
 """
-
+# online_poll_system/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    
-    # ✅ polls app routes (now included properly)
-    path('api/', include('polls.urls')),
+    path("admin/", admin.site.urls),
 
-    # ✅ JWT authentication endpoints
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # ✅ OpenAPI schema & docs
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 
-    # Redirect root to API
-    path('', RedirectView.as_view(url='/api/', permanent=True)),
+    # ✅ Include app routes
+    path("api/", include("polls.urls")),      # Polls endpoints
+    path("api/auth/", include("auth_api.urls")),  # Auth endpoints (now isolated under /api/auth/)
+
+    # ✅ Redirect root to API
+    path("", RedirectView.as_view(url="/api/", permanent=True)),
 ]
