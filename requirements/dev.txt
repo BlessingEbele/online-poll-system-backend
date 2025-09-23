@@ -1,0 +1,6 @@
+-r base.txt
+
+# Dev/testing tools
+coverage==7.6.1
+prompt-toolkit==3.0.52
+wcwidth==0.2.13

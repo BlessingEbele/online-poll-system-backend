@@ -1,0 +1,6 @@
+-r base.txt
+
+# MySQL driver (used in PythonAnywhere)
+mysqlclient>=2.2.4
+
+# Do NOT install psycopg2 in prod (Postgres not needed here)
