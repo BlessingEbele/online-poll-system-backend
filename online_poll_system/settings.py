@@ -14,7 +14,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 Django settings for online_poll_system project.
 """
 
-import os
+import sys
 from pathlib import Path
 from datetime import timedelta
 import environ
@@ -31,8 +31,12 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 
-# Load .env file if present
-environ.Env.read_env(BASE_DIR / ".env")
+if 'runserver' in sys.argv:
+    # Local development
+    env.read_env(BASE_DIR / ".env.dev")
+else:
+    # Production (PythonAnywhere)
+    env.read_env(BASE_DIR / ".env.prod")
 
 # ------------------------------------------------------------------------------
 # Security
@@ -40,7 +44,6 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("SECRET_KEY", default="insecure-default-key")
 DEBUG = env("DEBUG", default=False)
 
-# ALLOWED_HOSTS / CORS / CSRF from env
 def get_list_from_env(name, default=""):
     """Helper to safely split comma-separated env vars into a list."""
     value = env(name, default=default)
@@ -84,7 +87,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework_simplejwt",
     "drf_spectacular",
-    "drf_spectacular_sidecar",  # Swagger/Redoc UI
+    "drf_spectacular_sidecar",
 
     # Local apps
     "users",
@@ -126,14 +129,26 @@ WSGI_APPLICATION = "online_poll_system.wsgi.application"
 # ------------------------------------------------------------------------------
 # Database
 # ------------------------------------------------------------------------------
-# Prefer DATABASE_URL (works for PythonAnywhere’s MySQL/Postgres),
-# fallback to local Postgres values if not set.
-DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-        default=f"postgres://{os.getenv('POSTGRES_USER', 'postgres')}:{os.getenv('POSTGRES_PASSWORD', '')}@{os.getenv('POSTGRES_HOST', 'localhost')}:{os.getenv('POSTGRES_PORT', '5432')}/{os.getenv('POSTGRES_DB', 'postgres')}"
-    )
-}
+if 'PYTHONANYWHERE_DOMAIN' in env.ENVIRON:  # PythonAnywhere env var always set
+    # Use SQLite on free tier
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+else:
+    # Local Postgres
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("POSTGRES_DB", default="postgres"),
+            "USER": env("POSTGRES_USER", default="postgres"),
+            "PASSWORD": env("POSTGRES_PASSWORD", default=""),
+            "HOST": env("POSTGRES_HOST", default="localhost"),
+            "PORT": env("POSTGRES_PORT", default="5432"),
+        }
+    }
 
 # ------------------------------------------------------------------------------
 # Custom user model
