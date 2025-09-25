@@ -1,0 +1,180 @@
+{
+  "info": {
+    "name": "Online Poll System API",
+    "_postman_id": "f4a3c6b2-9d88-4ef6-9a41-abc123456789",
+    "description": "Postman collection for testing Online Poll System APIs (polls, options, votes).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Polls",
+      "item": [
+        {
+          "name": "Get all polls",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/polls/"
+          }
+        },
+        {
+          "name": "Create poll",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What is your favorite programming language?\"\n}"
+            },
+            "url": "{{baseUrl}}/polls/"
+          }
+        },
+        {
+          "name": "Get poll by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/polls/1/"
+          }
+        },
+        {
+          "name": "Update poll",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Updated question text\"\n}"
+            },
+            "url": "{{baseUrl}}/polls/1/"
+          }
+        },
+        {
+          "name": "Delete poll",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/polls/1/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Options",
+      "item": [
+        {
+          "name": "Get all options",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/options/"
+          }
+        },
+        {
+          "name": "Create option",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"poll\": 1,\n  \"option_text\": \"Python\"\n}"
+            },
+            "url": "{{baseUrl}}/options/"
+          }
+        },
+        {
+          "name": "Get option by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/options/1/"
+          }
+        },
+        {
+          "name": "Update option",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"poll\": 1,\n  \"option_text\": \"JavaScript\"\n}"
+            },
+            "url": "{{baseUrl}}/options/1/"
+          }
+        },
+        {
+          "name": "Delete option",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/options/1/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Votes",
+      "item": [
+        {
+          "name": "Get all votes",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/votes/"
+          }
+        },
+        {
+          "name": "Cast a vote",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"option\": 1,\n  \"user_id\": 101\n}"
+            },
+            "url": "{{baseUrl}}/votes/"
+          }
+        },
+        {
+          "name": "Get vote by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/votes/1/"
+          }
+        },
+        {
+          "name": "Update vote",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"option\": 2,\n  \"user_id\": 101\n}"
+            },
+            "url": "{{baseUrl}}/votes/1/"
+          }
+        },
+        {
+          "name": "Delete vote",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/votes/1/"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://wublessing.pythonanywhere.com/api"
+    }
+  ]
+}
+
+
