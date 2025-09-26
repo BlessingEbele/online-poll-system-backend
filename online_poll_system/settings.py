@@ -17,6 +17,7 @@ Django settings for online_poll_system project.
 import sys
 from pathlib import Path
 from datetime import timedelta
+import dj_database_url
 import environ
 
 # ------------------------------------------------------------------------------
@@ -31,12 +32,19 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 
-if 'runserver' in sys.argv:
+if "runserver" in sys.argv:
     # Local development
     env.read_env(BASE_DIR / ".env.dev")
 else:
     # Production (PythonAnywhere)
     env.read_env(BASE_DIR / ".env.prod")
+
+# ------------------------------------------------------------------------------
+# General settings
+# ------------------------------------------------------------------------------
+SECRET_KEY = env("SECRET_KEY")
+DEBUG = env("DEBUG")
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
 
 # ------------------------------------------------------------------------------
 # Security
@@ -85,7 +93,6 @@ INSTALLED_APPS = [
     # Third-party apps
     "rest_framework",
     "corsheaders",
-    "rest_framework_simplejwt",
     "drf_spectacular",
     "drf_spectacular_sidecar",
 
@@ -94,6 +101,7 @@ INSTALLED_APPS = [
     "polls",
     "auth_api",
 ]
+
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -129,8 +137,12 @@ WSGI_APPLICATION = "online_poll_system.wsgi.application"
 # ------------------------------------------------------------------------------
 # Database
 # ------------------------------------------------------------------------------
-if 'PYTHONANYWHERE_DOMAIN' in env.ENVIRON:  # PythonAnywhere env var always set
-    # Use SQLite on free tier
+# ------------------------------------------------------------------------------
+# Database
+# ------------------------------------------------------------------------------
+USE_SQLITE = env.bool("USE_SQLITE", default=False)
+
+if USE_SQLITE:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -138,18 +150,16 @@ if 'PYTHONANYWHERE_DOMAIN' in env.ENVIRON:  # PythonAnywhere env var always set
         }
     }
 else:
-    # Local Postgres
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("POSTGRES_DB", default="postgres"),
-            "USER": env("POSTGRES_USER", default="postgres"),
-            "PASSWORD": env("POSTGRES_PASSWORD", default=""),
-            "HOST": env("POSTGRES_HOST", default="localhost"),
+            "NAME": env("POSTGRES_DB"),
+            "USER": env("POSTGRES_USER"),
+            "PASSWORD": env("POSTGRES_PASSWORD"),
+            "HOST": env("POSTGRES_HOST"),
             "PORT": env("POSTGRES_PORT", default="5432"),
         }
     }
-
 # ------------------------------------------------------------------------------
 # Custom user model
 # ------------------------------------------------------------------------------
@@ -191,28 +201,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Django REST Framework
 # ------------------------------------------------------------------------------
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
     ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+    "DEFAULT_PERMISSION_CLASSES": (
+        "polls.permissions.ReadOnlyOrAuthenticated",  # 👈 use our custom class
     ),
 }
 
-
-# ------------------------------------------------------------------------------
-# JWT settings
-# ------------------------------------------------------------------------------
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "ROTATE_REFRESH_TOKENS": False,
-    "BLACKLIST_AFTER_ROTATION": False,
-    "ALGORITHM": "HS256",
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
-}
 
 # ------------------------------------------------------------------------------
 # Spectacular / Swagger

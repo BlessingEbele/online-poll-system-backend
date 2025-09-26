@@ -2,9 +2,8 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .serializers import UserRegisterSerializer, CustomTokenObtainPairSerializer
+from .serializers import UserRegisterSerializer
 
 
 @extend_schema_view(
@@ -32,6 +31,10 @@ from .serializers import UserRegisterSerializer, CustomTokenObtainPairSerializer
     )
 )
 class RegisterView(generics.CreateAPIView):
+    """
+    A public endpoint that allows new users to register.
+    No authentication or token is required since JWT has been removed.
+    """
     serializer_class = UserRegisterSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -51,49 +54,3 @@ class RegisterView(generics.CreateAPIView):
             status=status.HTTP_201_CREATED,
         )
 
-
-@extend_schema_view(
-    post=extend_schema(
-        tags=["Auth"],
-        summary="Obtain JWT token pair (Login)",
-        request=CustomTokenObtainPairSerializer,
-        responses={
-            200: OpenApiExample(
-                "Login Success",
-                value={
-                    "refresh": "string.jwt.refresh.token",
-                    "access": "string.jwt.access.token",
-                },
-            ),
-            401: OpenApiExample(
-                "Invalid credentials",
-                value={"detail": "No active account found with the given credentials"},
-            ),
-        },
-    )
-)
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
-
-
-@extend_schema_view(
-    post=extend_schema(
-        tags=["Auth"],
-        summary="Refresh access token",
-        request={
-            "refresh": "string.jwt.refresh.token",
-        },
-        responses={
-            200: OpenApiExample(
-                "Refresh Success",
-                value={"access": "string.jwt.new.access.token"},
-            ),
-            401: OpenApiExample(
-                "Invalid token",
-                value={"detail": "Token is invalid or expired"},
-            ),
-        },
-    )
-)
-class CustomTokenRefreshView(TokenRefreshView):
-    pass

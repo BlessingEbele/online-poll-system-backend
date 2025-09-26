@@ -140,6 +140,35 @@ online-poll-system-backend/
 
 ---
 
+## Database Configuration
+
+This project supports both **PostgreSQL** (for production / local Docker) and **SQLite** (for PythonAnywhere free plan).
+
+### Switching Between Databases
+
+The database backend is controlled by the `USE_SQLITE` flag in your `.env` files:
+
+- **PostgreSQL (default)**
+  ```ini
+  USE_SQLITE=false
+  POSTGRES_DB=poll_db
+  POSTGRES_USER=poll_user
+  POSTGRES_PASSWORD=secret
+  POSTGRES_HOST=db
+  POSTGRES_PORT=5432
+SQLite (for PythonAnywhere free plan)
+
+ini
+Copy code
+USE_SQLITE=true
+When USE_SQLITE=true, the project will use a local db.sqlite3 file in your project root.
+When USE_SQLITE=false (or not set), PostgreSQL credentials from the environment will be used.
+
+Notes
+No changes to migrations are required when switching databases.
+
+Ensure your .env.dev and .env.prod contain the correct value for USE_SQLITE depending on where you deploy.
+
 🔥 This project reflects my **backend engineering expertise** and serves as a **portfolio-ready, real-world application**.
 
 ``` 
