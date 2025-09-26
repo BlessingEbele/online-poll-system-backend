@@ -1,0 +1,765 @@
+openapi: 3.0.3
+info:
+  title: Poll System API
+  version: 1.0.0
+  description: Backend API for creating polls, voting, and managing results.
+paths:
+  /api/:
+    get:
+      operationId: root_retrieve
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIRoot'
+              examples:
+                APIRootExample:
+                  value:
+                    polls: http://localhost:8000/api/polls/
+                    options: http://localhost:8000/api/options/
+                    votes: http://localhost:8000/api/votes/
+                  summary: API Root Example
+          description: ''
+  /api/auth/register/:
+    post:
+      operationId: auth_register_create
+      description: Creates a new user account. Requires username and password (and
+        optionally email).
+      summary: Register a new user
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+            examples:
+              RegistrationExample:
+                value:
+                  username: testuser
+                  password: StrongPassword123
+                  email: user@example.com
+                summary: Registration Example
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegister'
+              examples:
+                RegistrationExample:
+                  value:
+                    username: testuser
+                    password: StrongPassword123
+                    email: user@example.com
+                  summary: Registration Example
+          description: ''
+  /api/options/:
+    get:
+      operationId: options_list
+      summary: List all options
+      tags:
+      - Options
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Option'
+          description: ''
+    post:
+      operationId: options_create
+      summary: Create a new option (auth required)
+      tags:
+      - Options
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OptionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OptionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OptionRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Option'
+          description: ''
+  /api/options/{id}/:
+    get:
+      operationId: options_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this option.
+        required: true
+      tags:
+      - options
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Option'
+          description: ''
+    put:
+      operationId: options_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this option.
+        required: true
+      tags:
+      - options
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OptionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OptionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OptionRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Option'
+          description: ''
+    patch:
+      operationId: options_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this option.
+        required: true
+      tags:
+      - options
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOptionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOptionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOptionRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Option'
+          description: ''
+    delete:
+      operationId: options_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this option.
+        required: true
+      tags:
+      - options
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/polls/:
+    get:
+      operationId: polls_list
+      summary: List all polls
+      tags:
+      - Polls
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Poll'
+          description: ''
+    post:
+      operationId: polls_create
+      summary: Create a new poll (auth required)
+      tags:
+      - Polls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+  /api/polls/{id}/:
+    get:
+      operationId: polls_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+    put:
+      operationId: polls_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PollRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+    patch:
+      operationId: polls_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPollRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPollRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPollRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poll'
+          description: ''
+    delete:
+      operationId: polls_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this poll.
+        required: true
+      tags:
+      - polls
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/votes/:
+    get:
+      operationId: votes_list
+      description: Retrieve all votes. No authentication required.
+      summary: List votes
+      tags:
+      - Votes
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vote'
+          description: ''
+    post:
+      operationId: votes_create
+      description: |-
+        Cast a vote for a poll option.
+
+        - **No login required** — votes are tracked by session key.
+        - If no session exists, one is created automatically.
+        - Duplicate votes within the same session are blocked.
+      summary: Cast a vote
+      tags:
+      - Votes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoteRequest'
+            examples:
+              VoteExample:
+                value:
+                  option: 1
+                summary: Vote Example
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VoteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VoteRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '201':
+          description: Vote successfully created
+        '400':
+          description: Invalid input or duplicate vote in this session
+  /api/votes/{id}/:
+    get:
+      operationId: votes_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vote.
+        required: true
+      tags:
+      - votes
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+          description: ''
+    put:
+      operationId: votes_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vote.
+        required: true
+      tags:
+      - votes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VoteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VoteRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+          description: ''
+    patch:
+      operationId: votes_partial_update
+      description: |-
+        Partially update a vote. **Authentication required.**
+
+        Anonymous users will receive **403 Forbidden**.
+      summary: Update a vote
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vote.
+        required: true
+      tags:
+      - Votes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVoteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVoteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVoteRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '200':
+          description: Vote updated
+        '403':
+          description: 'Forbidden: authentication required'
+    delete:
+      operationId: votes_destroy
+      description: |-
+        Delete a vote. **Authentication required.**
+
+        - Authenticated users may delete votes they own (if ownership rules apply).
+        - Anonymous users will receive **403 Forbidden**.
+      summary: Delete a vote
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vote.
+        required: true
+      tags:
+      - Votes
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - BasicAuth: []
+      - SessionAuth: []
+      responses:
+        '204':
+          description: Vote deleted
+        '403':
+          description: 'Forbidden: authentication required'
+components:
+  schemas:
+    APIRoot:
+      type: object
+      properties:
+        polls:
+          type: string
+          format: uri
+        options:
+          type: string
+          format: uri
+        votes:
+          type: string
+          format: uri
+      required:
+      - options
+      - polls
+      - votes
+    Option:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        text:
+          type: string
+          maxLength: 255
+        poll:
+          type: integer
+        votes_count:
+          type: integer
+          readOnly: true
+      required:
+      - id
+      - poll
+      - text
+      - votes_count
+    OptionRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 255
+        poll:
+          type: integer
+      required:
+      - poll
+      - text
+    PatchedOptionRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 255
+        poll:
+          type: integer
+    PatchedPollRequest:
+      type: object
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 255
+    PatchedVoteRequest:
+      type: object
+      properties:
+        option:
+          type: integer
+    Poll:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        question:
+          type: string
+          maxLength: 255
+        pub_date:
+          type: string
+          format: date-time
+          readOnly: true
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/Option'
+          readOnly: true
+      required:
+      - id
+      - options
+      - pub_date
+      - question
+    PollRequest:
+      type: object
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 255
+      required:
+      - question
+    UserRegister:
+      type: object
+      description: |-
+        Serializer for registering a new user.
+        Handles creating the user with a hashed password.
+      properties:
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          maxLength: 254
+      required:
+      - email
+      - username
+    UserRegisterRequest:
+      type: object
+      description: |-
+        Serializer for registering a new user.
+        Handles creating the user with a hashed password.
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+      required:
+      - email
+      - password
+      - username
+    Vote:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        option:
+          type: integer
+      required:
+      - id
+      - option
+    VoteRequest:
+      type: object
+      properties:
+        option:
+          type: integer
+      required:
+      - option
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+tags:
+- name: Polls
+  description: Poll management endpoints
+- name: Options
+  description: Poll options
+- name: Votes
+  description: Vote submission
+- name: Auth
+  description: User authentication and registration

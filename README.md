@@ -51,6 +51,20 @@ The project emphasizes **scalable database design, secure APIs, and professional
 
 ---
 
+
+## Votes
+
+- **Session-based voting**: Votes are tracked by session key.  
+  - Users do **not** need to log in to cast a vote (`POST /votes/`).  
+  - If a session doesn’t exist, one is automatically created.  
+  - Duplicate votes in the same session are blocked.
+
+- **Destructive methods** (`DELETE`, `PATCH`):  
+  - These still **require authentication**.  
+  - Anonymous users attempting such actions will receive `403 Forbidden`.
+
+This ensures low-friction participation (easy voting without accounts) while still protecting destructive actions with proper access control.
+
 ## 🚀 Setup & Installation
 ```bash
 # Clone repository

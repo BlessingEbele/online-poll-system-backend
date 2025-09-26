@@ -2,7 +2,10 @@
 from rest_framework import serializers
 from .models import Poll, Option, Vote
 
-
+class APIRootSerializer(serializers.Serializer):
+    polls = serializers.URLField()
+    options = serializers.URLField()
+    votes = serializers.URLField()
 class OptionSerializer(serializers.ModelSerializer):
     votes_count = serializers.IntegerField(source='votes.count', read_only=True)
 

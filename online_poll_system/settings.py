@@ -137,9 +137,6 @@ WSGI_APPLICATION = "online_poll_system.wsgi.application"
 # ------------------------------------------------------------------------------
 # Database
 # ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# Database
-# ------------------------------------------------------------------------------
 USE_SQLITE = env.bool("USE_SQLITE", default=False)
 
 if USE_SQLITE:
@@ -206,30 +203,41 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.BasicAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
-        "polls.permissions.ReadOnlyOrAuthenticated",  # 👈 use our custom class
+        "polls.permissions.ReadOnlyOrAuthenticated",  # your custom default
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",  # needed for spectacular
 }
 
 
-# ------------------------------------------------------------------------------
-# Spectacular / Swagger
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------  
+# Spectacular / Swagger  
+# ------------------------------------------------------------------------------  
 SPECTACULAR_SETTINGS = {
     "TITLE": "Poll System API",
     "DESCRIPTION": "Backend API for creating polls, voting, and managing results.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 
-    "SECURITY": [{"BearerAuth": []}],
+    # SECURITY matches Django REST Framework setup (Session + Basic auth)
+    "SECURITY": [
+        {"BasicAuth": []},
+        {"SessionAuth": []},
+    ],
     "COMPONENT_SPLIT_REQUEST": True,
 
     "COMPONENTS": {
         "securitySchemes": {
-            "BearerAuth": {
+            "BasicAuth": {
                 "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT",
-            }
+                "scheme": "basic",
+                "description": "Use your username and password to authenticate.",
+            },
+            "SessionAuth": {
+                "type": "apiKey",
+                "in": "cookie",
+                "name": "sessionid",
+                "description": "Session-based authentication using Django's session cookie.",
+            },
         }
     },
 
@@ -242,5 +250,6 @@ SPECTACULAR_SETTINGS = {
 
     "SWAGGER_UI_SETTINGS": {
         "persistAuthorization": True,
+        "oauth2RedirectUrl": "/api-auth/login/",  # connect Swagger to DRF login
     },
 }

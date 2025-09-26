@@ -2,7 +2,6 @@ amqp==5.3.1
 asgiref==3.8.1
 async-timeout==5.0.1
 attrs==25.3.0
-backports.zoneinfo==0.2.1
 billiard==4.2.1
 celery==5.4.0
 click==8.1.8
@@ -10,7 +9,7 @@ click-didyoumean==0.3.1
 click-plugins==1.1.1.2
 click-repl==0.3.0
 coverage==7.6.1
-dj-database-url==1.1.0
+dj-database-url
 django==4.2.24
 django-cors-headers==4.3.1
 django-environ==0.11.2
@@ -50,4 +49,3 @@ uritemplate==4.1.1
 vine==5.1.0
 wcwidth==0.2.13
 zipp==3.20.2
-dj-database-url<1.2.0

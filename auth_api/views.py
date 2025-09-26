@@ -6,29 +6,22 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExam
 from .serializers import UserRegisterSerializer
 
 
-@extend_schema_view(
-    post=extend_schema(
-        tags=["Auth"],
-        summary="Register a new user",
-        request=UserRegisterSerializer,
-        responses={
-            201: OpenApiExample(
-                "Successful Registration",
-                value={
-                    "message": "User registered successfully",
-                    "user": {
-                        "id": 1,
-                        "username": "new_user",
-                        "email": "new_user@example.com"
-                    }
-                },
-            ),
-            400: OpenApiExample(
-                "Validation Error",
-                value={"username": ["This field is required."]},
-            ),
-        },
-    )
+@extend_schema(
+    summary="Register a new user",
+    description="Creates a new user account. Requires username and password (and optionally email).",
+    request=UserRegisterSerializer,
+    responses={201: UserRegisterSerializer},
+    examples=[
+        OpenApiExample(
+            "Registration Example",
+            value={
+                "username": "testuser",
+                "password": "StrongPassword123",
+                "email": "user@example.com"
+            },
+        )
+    ],
+    tags=["Auth"],
 )
 class RegisterView(generics.CreateAPIView):
     """
