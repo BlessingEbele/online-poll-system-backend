@@ -8,6 +8,6 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
 
     # DRF’s built-in login/logout/password endpoints (session-based auth)
-    #path("", include("rest_framework.urls")),
+    path("", include("rest_framework.urls")),
 ]
 
