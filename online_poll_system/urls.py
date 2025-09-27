@@ -35,6 +35,7 @@ urlpatterns = [
     # Core API routes
     path("api/", include("polls.urls")),          # polls, options, votes, root
     path("api/auth/", include("auth_api.urls")),  # session-based login/logout/register
+    path("api/auth/", include("users.urls")), # token-based login/logout/register
 
     # Redirect bare domain → API root
     path("", RedirectView.as_view(url="/api/", permanent=True)),
