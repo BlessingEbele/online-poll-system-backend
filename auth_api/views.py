@@ -1,5 +1,5 @@
 # auth_api/views.py
-from rest_framework import generics, permissions, status
+'''from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiExample
@@ -105,3 +105,34 @@ class LogoutView(APIView):
             {"message": "Logout successful"},
             status=status.HTTP_200_OK,
         )
+'''
+
+from rest_framework import generics, permissions
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.contrib.auth import login, logout
+from django.contrib.auth.models import update_last_login
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import UserRegisterSerializer
+
+class RegisterView(generics.CreateAPIView):
+    serializer_class = UserRegisterSerializer
+    permission_classes = [permissions.AllowAny]
+
+class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        from django.contrib.auth import authenticate
+        username = request.data.get("username")
+        password = request.data.get("password")
+        user = authenticate(username=username, password=password)
+        if user:
+            login(request, user)
+            return Response({"message": "Login successful"})
+        return Response({"error": "Invalid credentials"}, status=400)
+
+class LogoutView(APIView):
+    def post(self, request):
+        logout(request)
+        return Response({"message": "Logout successful"})
