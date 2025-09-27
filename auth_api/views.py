@@ -1,11 +1,14 @@
 # auth_api/views.py
+from django.contrib.auth import authenticate, login, logout
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
-
+from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema, OpenApiExample
 from .serializers import UserRegisterSerializer
 
-
+# -------------------------
+# Register View
+# -------------------------
 @extend_schema(
     summary="Register a new user",
     description="Creates a new user account. Requires username and password (and optionally email).",
@@ -25,8 +28,7 @@ from .serializers import UserRegisterSerializer
 )
 class RegisterView(generics.CreateAPIView):
     """
-    A public endpoint that allows new users to register.
-    No authentication or token is required since JWT has been removed.
+    Public endpoint to register a new user.
     """
     serializer_class = UserRegisterSerializer
     permission_classes = [permissions.AllowAny]
@@ -47,3 +49,62 @@ class RegisterView(generics.CreateAPIView):
             status=status.HTTP_201_CREATED,
         )
 
+# -------------------------
+# Login View
+# -------------------------
+@extend_schema(
+    summary="Login a user",
+    description="Logs in a user using session authentication. Requires username and password.",
+    examples=[
+        OpenApiExample(
+            "Login Example",
+            value={
+                "username": "testuser",
+                "password": "StrongPassword123"
+            },
+        )
+    ],
+    tags=["Auth"],
+)
+class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        if not username or not password:
+            return Response(
+                {"error": "Username and password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return Response(
+                {"message": "Login successful"},
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {"error": "Invalid username or password"},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+# -------------------------
+# Logout View
+# -------------------------
+@extend_schema(
+    summary="Logout a user",
+    description="Logs out the currently authenticated user.",
+    tags=["Auth"],
+)
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        return Response(
+            {"message": "Logout successful"},
+            status=status.HTTP_200_OK,
+        )
