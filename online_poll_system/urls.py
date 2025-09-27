@@ -39,3 +39,4 @@ urlpatterns = [
     # Redirect bare domain → API root
     path("", RedirectView.as_view(url="/api/", permanent=True)),
 ]
+#testing out my git push 
