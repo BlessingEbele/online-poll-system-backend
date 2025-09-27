@@ -61,5 +61,7 @@ class LogoutView(APIView):
 
     def post(self, request):
         logout(request)
-        serializer = LogoutSerializer({"detail": "Logout successful"})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            {"detail": "Successfully logged out."},
+            status=status.HTTP_200_OK,
+        )
