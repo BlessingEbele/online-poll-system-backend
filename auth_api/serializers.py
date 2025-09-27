@@ -1,12 +1,15 @@
 # auth_api/serializers.py
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
+
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
         required=True,
         style={"input_type": "password"},
+        validators=[validate_password],
         min_length=8
     )
     password2 = serializers.CharField(

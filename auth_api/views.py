@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiExample
 from .serializers import UserRegisterSerializer
 
+
 # -------------------------
 # Register View
 # -------------------------
@@ -20,6 +21,7 @@ from .serializers import UserRegisterSerializer
             value={
                 "username": "testuser",
                 "password": "StrongPassword123",
+                "password2": "StrongPassword123",
                 "email": "user@example.com"
             },
         )
@@ -27,9 +29,6 @@ from .serializers import UserRegisterSerializer
     tags=["Auth"],
 )
 class RegisterView(generics.CreateAPIView):
-    """
-    Public endpoint to register a new user.
-    """
     serializer_class = UserRegisterSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -48,6 +47,7 @@ class RegisterView(generics.CreateAPIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
 
 # -------------------------
 # Login View
@@ -82,14 +82,13 @@ class LoginView(APIView):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return Response(
-                {"message": "Login successful"},
-                status=status.HTTP_200_OK,
-            )
+            return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
+
         return Response(
             {"error": "Invalid username or password"},
             status=status.HTTP_401_UNAUTHORIZED,
         )
+
 
 # -------------------------
 # Logout View
@@ -104,7 +103,4 @@ class LogoutView(APIView):
 
     def post(self, request, *args, **kwargs):
         logout(request)
-        return Response(
-            {"message": "Logout successful"},
-            status=status.HTTP_200_OK,
-        )
+        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
