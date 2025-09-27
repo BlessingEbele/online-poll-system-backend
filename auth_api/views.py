@@ -4,7 +4,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiExample
-from .serializers import UserRegisterSerializer
+from .serializers import RegisterSerializer
 
 
 # -------------------------
@@ -13,8 +13,8 @@ from .serializers import UserRegisterSerializer
 @extend_schema(
     summary="Register a new user",
     description="Creates a new user account. Requires username and password (and optionally email).",
-    request=UserRegisterSerializer,
-    responses={201: UserRegisterSerializer},
+    request=RegisterSerializer,
+    responses={201: RegisterSerializer},
     examples=[
         OpenApiExample(
             "Registration Example",
