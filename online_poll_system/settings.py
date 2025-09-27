@@ -37,7 +37,7 @@ if "runserver" in sys.argv:
     env.read_env(BASE_DIR / ".env.dev")
 else:
     # Production (PythonAnywhere)
-    env.read_env()
+    env.read_env(BASE_DIR / ".env.prod")
 
 # ------------------------------------------------------------------------------
 # General settings
