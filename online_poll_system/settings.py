@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 Django settings for online_poll_system project.
 """
-
+import os
 import sys
 from pathlib import Path
 from datetime import timedelta
@@ -137,9 +137,8 @@ WSGI_APPLICATION = "online_poll_system.wsgi.application"
 # ------------------------------------------------------------------------------
 # Database
 # ------------------------------------------------------------------------------
-USE_SQLITE = env.bool("USE_SQLITE", default=False)
-
-if USE_SQLITE:
+if "PYTHONANYWHERE_DOMAIN" in os.environ:
+    # Use SQLite on PythonAnywhere
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -147,6 +146,7 @@ if USE_SQLITE:
         }
     }
 else:
+    # Use Postgres locally (via Docker)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -157,6 +157,7 @@ else:
             "PORT": env("POSTGRES_PORT", default="5432"),
         }
     }
+    
 # ------------------------------------------------------------------------------
 # Custom user model
 # ------------------------------------------------------------------------------
