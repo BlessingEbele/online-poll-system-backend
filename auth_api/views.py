@@ -4,8 +4,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiExample
-from .serializers import RegisterSerializer
-
+from .serializers import UserRegisterSerializer
 
 # -------------------------
 # Register View
@@ -13,8 +12,8 @@ from .serializers import RegisterSerializer
 @extend_schema(
     summary="Register a new user",
     description="Creates a new user account. Requires username and password (and optionally email).",
-    request=RegisterSerializer,
-    responses={201: RegisterSerializer},
+    request=UserRegisterSerializer,
+    responses={201: UserRegisterSerializer},
     examples=[
         OpenApiExample(
             "Registration Example",
@@ -47,7 +46,6 @@ class RegisterView(generics.CreateAPIView):
             },
             status=status.HTTP_201_CREATED,
         )
-
 
 # -------------------------
 # Login View
@@ -82,13 +80,14 @@ class LoginView(APIView):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
-
+            return Response(
+                {"message": "Login successful"},
+                status=status.HTTP_200_OK,
+            )
         return Response(
             {"error": "Invalid username or password"},
             status=status.HTTP_401_UNAUTHORIZED,
         )
-
 
 # -------------------------
 # Logout View
@@ -103,4 +102,7 @@ class LogoutView(APIView):
 
     def post(self, request, *args, **kwargs):
         logout(request)
-        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Logout successful"},
+            status=status.HTTP_200_OK,
+        )
