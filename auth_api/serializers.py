@@ -38,8 +38,6 @@ from rest_framework import serializers
         )
         return user
 '''
-from django.contrib.auth.models import User
-from rest_framework import serializers
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(

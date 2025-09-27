@@ -17,43 +17,41 @@ import os
 import sys
 from pathlib import Path
 from datetime import timedelta
-import dj_database_url
 import environ
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 # Paths
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 # Environment setup
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 env = environ.Env(
     DEBUG=(bool, False)
 )
 
+# Load .env file depending on run context
 if "runserver" in sys.argv:
     # Local development
-    env.read_env(BASE_DIR / ".env.dev")
+    env_file = BASE_DIR / ".env.dev"
 else:
     # Production (PythonAnywhere)
-    env.read_env(BASE_DIR / ".env.prod")
+    env_file = BASE_DIR / ".env.prod"
 
-# ------------------------------------------------------------------------------
+if env_file.exists():
+    environ.Env.read_env(env_file)
+else:
+    raise FileNotFoundError(f"{env_file} not found. Please create it.")
+
+# ------------------------------------------------------------------
 # General settings
-# ------------------------------------------------------------------------------
-SECRET_KEY = env("SECRET_KEY")
-DEBUG = env("DEBUG")
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
-
-# ------------------------------------------------------------------------------
-# Security
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 SECRET_KEY = env("SECRET_KEY", default="insecure-default-key")
 DEBUG = env("DEBUG", default=False)
 
 def get_list_from_env(name, default=""):
-    """Helper to safely split comma-separated env vars into a list."""
+    """Safely split comma-separated env vars into a list."""
     value = env(name, default=default)
     if not value:
         return []
@@ -78,9 +76,9 @@ if DEBUG:
     ]
     CSRF_TRUSTED_ORIGINS = list(set(CSRF_TRUSTED_ORIGINS))
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 # Applications
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 INSTALLED_APPS = [
     # Django apps
     "django.contrib.admin",
@@ -94,14 +92,13 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "drf_spectacular",
-    "drf_spectacular_sidecar", # for swagger-ui and redoc static files
+    "drf_spectacular_sidecar",
 
     # Local apps
-    "users", 
+    "users",
     "polls",
     "auth_api",
 ]
-
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -134,11 +131,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "online_poll_system.wsgi.application"
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 # Database
-# ------------------------------------------------------------------------------
-if "PYTHONANYWHERE_DOMAIN" in os.environ:
-    # Use SQLite on PythonAnywhere
+# ------------------------------------------------------------------
+USE_SQLITE = env.bool("USE_SQLITE", default=True)
+
+if USE_SQLITE:
+    # Production / PythonAnywhere
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -146,26 +145,26 @@ if "PYTHONANYWHERE_DOMAIN" in os.environ:
         }
     }
 else:
-    # Use Postgres locally (via Docker)
+    # Local development (Postgres)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("POSTGRES_DB"),
-            "USER": env("POSTGRES_USER"),
-            "PASSWORD": env("POSTGRES_PASSWORD"),
-            "HOST": env("POSTGRES_HOST"),
+            "NAME": env("POSTGRES_DB", default="poll_db"),
+            "USER": env("POSTGRES_USER", default="poll_user"),
+            "PASSWORD": env("POSTGRES_PASSWORD", default="secret"),
+            "HOST": env("POSTGRES_HOST", default="localhost"),
             "PORT": env("POSTGRES_PORT", default="5432"),
         }
     }
-    
-# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------
 # Custom user model
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 AUTH_USER_MODEL = "users.User"
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 # Password validation
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -173,59 +172,55 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 # Internationalization
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 # Static & Media files
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "mediafiles"
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 # Default primary key field type
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 # Django REST Framework
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
-        "polls.permissions.ReadOnlyOrAuthenticated",  # your custom default
+        "polls.permissions.ReadOnlyOrAuthenticated",
     ),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",  # needed for spectacular
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-
-# ------------------------------------------------------------------------------  
-# Spectacular / Swagger  
-# ------------------------------------------------------------------------------  
+# ------------------------------------------------------------------
+# Spectacular / Swagger
+# ------------------------------------------------------------------
 SPECTACULAR_SETTINGS = {
     "TITLE": "Poll System API",
     "DESCRIPTION": "Backend API for creating polls, voting, and managing results.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-
-    # SECURITY matches Django REST Framework setup (Session + Basic auth)
     "SECURITY": [
         {"BasicAuth": []},
         {"SessionAuth": []},
     ],
     "COMPONENT_SPLIT_REQUEST": True,
-
     "COMPONENTS": {
         "securitySchemes": {
             "BasicAuth": {
@@ -241,16 +236,14 @@ SPECTACULAR_SETTINGS = {
             },
         }
     },
-
     "TAGS": [
         {"name": "Polls", "description": "Poll management endpoints"},
         {"name": "Options", "description": "Poll options"},
         {"name": "Votes", "description": "Vote submission"},
         {"name": "Auth", "description": "User authentication and registration"},
     ],
-
     "SWAGGER_UI_SETTINGS": {
         "persistAuthorization": True,
-        "oauth2RedirectUrl": "/api-auth/login/",  # connect Swagger to DRF login
+        "oauth2RedirectUrl": "/api-auth/login/",
     },
 }

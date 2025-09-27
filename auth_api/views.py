@@ -1,11 +1,10 @@
 # auth_api/views.py
-from django.contrib.auth import authenticate, login, logout
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiExample
 from .serializers import UserRegisterSerializer
-
+from django.contrib.auth import authenticate, login, logout
 # -------------------------
 # Register View
 # -------------------------
