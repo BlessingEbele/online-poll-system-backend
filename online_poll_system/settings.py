@@ -94,10 +94,10 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "drf_spectacular",
-    "drf_spectacular_sidecar",
+    "drf_spectacular_sidecar", # for swagger-ui and redoc static files
 
     # Local apps
-    "users",
+    "users", 
     "polls",
     "auth_api",
 ]

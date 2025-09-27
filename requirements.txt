@@ -49,3 +49,4 @@ uritemplate==4.1.1
 vine==5.1.0
 wcwidth==0.2.13
 zipp==3.20.2
+environ==1.0.0
