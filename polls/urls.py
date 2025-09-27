@@ -9,6 +9,9 @@ router.register(r"options", OptionViewSet, basename="option")
 router.register(r"votes", VoteViewSet, basename="vote")
 
 urlpatterns = [
+    # API root index
     path("", api_root, name="api-root"),
+
+    # Router-generated endpoints
     path("", include(router.urls)),
 ]

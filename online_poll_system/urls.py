@@ -32,12 +32,10 @@ urlpatterns = [
     path("api/docs/swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/docs/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 
-    # Polls API routes
-    path("api/", include("polls.urls")),
+    # Core API routes
+    path("api/", include("polls.urls")),          # polls, options, votes, root
+    path("api/auth/", include("auth_api.urls")),  # session-based login/logout/register
 
-    # Auth routes (session-based)
-    path("api/auth/", include("auth_api.urls")),
-
-    # Redirect root → /api
+    # Redirect bare domain → API root
     path("", RedirectView.as_view(url="/api/", permanent=True)),
 ]
