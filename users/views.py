@@ -56,12 +56,9 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
-    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    authentication_classes = (CsrfExemptSessionAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         logout(request)
-        return Response(
-            {"detail": "Successfully logged out."},
-            status=status.HTTP_200_OK,
-        )
+        return Response({"detail": "Logout successful"}, status=status.HTTP_200_OK)
