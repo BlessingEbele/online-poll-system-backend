@@ -19,32 +19,7 @@ from .serializers import PollSerializer, OptionSerializer, VoteSerializer, APIRo
 # -----------------------
 # API Root
 # -----------------------
-'''@api_view(['GET'])
-@extend_schema(
-    summary="API Root",
-    description="Links to the main resources of the API.",
-    request=None,  # no request body
-    responses=APIRootSerializer,  # 👈 use serializer directly instead of dict
-    examples=[
-        OpenApiExample(
-            "API Root Example",
-            value={
-                "polls": "http://localhost:8000/api/polls/",
-                "options": "http://localhost:8000/api/options/",
-                "votes": "http://localhost:8000/api/votes/",
-            },
-            response_only=True,
-        ),
-    ],
-    tags=["Root"],
-)
-def api_root(request, format=None):
-    return Response({
-        "polls": reverse("poll-list", request=request, format=format),
-        "options": reverse("option-list", request=request, format=format),
-        "votes": reverse("vote-list", request=request, format=format),
-    })
-    '''
+
 @extend_schema(
     responses=APIRootSerializer,
     examples=[
