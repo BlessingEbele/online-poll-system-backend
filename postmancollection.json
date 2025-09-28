@@ -1,0 +1,325 @@
+{
+  "info": {
+    "name": "Online Poll System API (Full CRUD, Chained)",
+    "description": "Full Postman collection for Polls, Options, Votes, and Auth. Supports chaining across register → login → create poll → create option → vote, with all CRUD endpoints included.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/register/", "host": ["{{base_url}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var cookie = pm.response.headers.get('Set-Cookie');",
+                  "if (cookie) {",
+                  "  var sessionid = cookie.match(/sessionid=([^;]+)/);",
+                  "  if (sessionid) {",
+                  "    pm.environment.set('auth_token', sessionid[1]);",
+                  "    console.log('Session ID saved:', sessionid[1]);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/login/", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Cookie", "value": "sessionid={{auth_token}}" }],
+            "url": { "raw": "{{base_url}}/auth/logout/", "host": ["{{base_url}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Polls",
+      "item": [
+        {
+          "name": "List Polls",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Cookie", "value": "sessionid={{auth_token}}" }],
+            "url": { "raw": "{{base_url}}/polls/", "host": ["{{base_url}}"], "path": ["polls"] }
+          }
+        },
+        {
+          "name": "Create Poll",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json = pm.response.json();",
+                  "if (json && json.id) {",
+                  "  pm.environment.set('poll_id', json.id);",
+                  "  console.log('Poll ID saved:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "sessionid={{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Best programming language?\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/polls/", "host": ["{{base_url}}"], "path": ["polls"] }
+          }
+        },
+        {
+          "name": "Get Poll by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Cookie", "value": "sessionid={{auth_token}}" }],
+            "url": { "raw": "{{base_url}}/polls/{{poll_id}}/", "host": ["{{base_url}}"], "path": ["polls", "{{poll_id}}"] }
+          }
+        },
+        {
+          "name": "Update Poll (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "sessionid={{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Updated Poll Question\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/polls/{{poll_id}}/", "host": ["{{base_url}}"], "path": ["polls", "{{poll_id}}"] }
+          }
+        },
+        {
+          "name": "Update Poll (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "sessionid={{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Partially Updated Poll\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/polls/{{poll_id}}/", "host": ["{{base_url}}"], "path": ["polls", "{{poll_id}}"] }
+          }
+        },
+        {
+          "name": "Delete Poll",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Cookie", "value": "sessionid={{auth_token}}" }],
+            "url": { "raw": "{{base_url}}/polls/{{poll_id}}/", "host": ["{{base_url}}"], "path": ["polls", "{{poll_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Options",
+      "item": [
+        {
+          "name": "List Options",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Cookie", "value": "sessionid={{auth_token}}" }],
+            "url": { "raw": "{{base_url}}/options/", "host": ["{{base_url}}"], "path": ["options"] }
+          }
+        },
+        {
+          "name": "Create Option",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json = pm.response.json();",
+                  "if (json && json.id) {",
+                  "  pm.environment.set('option_id', json.id);",
+                  "  console.log('Option ID saved:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "sessionid={{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"poll\": {{poll_id}},\n  \"text\": \"Python\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/options/", "host": ["{{base_url}}"], "path": ["options"] }
+          }
+        },
+        {
+          "name": "Get Option by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Cookie", "value": "sessionid={{auth_token}}" }],
+            "url": { "raw": "{{base_url}}/options/{{option_id}}/", "host": ["{{base_url}}"], "path": ["options", "{{option_id}}"] }
+          }
+        },
+        {
+          "name": "Update Option (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "sessionid={{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"poll\": {{poll_id}},\n  \"text\": \"Updated Option\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/options/{{option_id}}/", "host": ["{{base_url}}"], "path": ["options", "{{option_id}}"] }
+          }
+        },
+        {
+          "name": "Update Option (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "sessionid={{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Partially Updated Option\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/options/{{option_id}}/", "host": ["{{base_url}}"], "path": ["options", "{{option_id}}"] }
+          }
+        },
+        {
+          "name": "Delete Option",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Cookie", "value": "sessionid={{auth_token}}" }],
+            "url": { "raw": "{{base_url}}/options/{{option_id}}/", "host": ["{{base_url}}"], "path": ["options", "{{option_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Votes",
+      "item": [
+        {
+          "name": "List Votes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Cookie", "value": "sessionid={{auth_token}}" }],
+            "url": { "raw": "{{base_url}}/votes/", "host": ["{{base_url}}"], "path": ["votes"] }
+          }
+        },
+        {
+          "name": "Cast Vote",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json = pm.response.json();",
+                  "if (json && json.id) {",
+                  "  pm.environment.set('vote_id', json.id);",
+                  "  console.log('Vote ID saved:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "sessionid={{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"option_id\": {{option_id}}\n}"
+            },
+            "url": { "raw": "{{base_url}}/votes/", "host": ["{{base_url}}"], "path": ["votes"] }
+          }
+        },
+        {
+          "name": "Get Vote by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Cookie", "value": "sessionid={{auth_token}}" }],
+            "url": { "raw": "{{base_url}}/votes/{{vote_id}}/", "host": ["{{base_url}}"], "path": ["votes", "{{vote_id}}"] }
+          }
+        },
+        {
+          "name": "Update Vote (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "sessionid={{auth_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"option_id\": {{option_id}}\n}" },
+            "url": { "raw": "{{base_url}}/votes/{{vote_id}}/", "host": ["{{base_url}}"], "path": ["votes", "{{vote_id}}"] }
+          }
+        },
+        {
+          "name": "Update Vote (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "sessionid={{auth_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"option_id\": {{option_id}}\n}" },
+            "url": { "raw": "{{base_url}}/votes/{{vote_id}}/", "host": ["{{base_url}}"], "path": ["votes", "{{vote_id}}"] }
+          }
+        },
+        {
+          "name": "Delete Vote",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Cookie", "value": "sessionid={{auth_token}}" }],
+            "url": { "raw": "{{base_url}}/votes/{{vote_id}}/", "host": ["{{base_url}}"], "path": ["votes", "{{vote_id}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}
